@@ -1,9 +1,13 @@
 import itertools
 import requests
 from bs4 import BeautifulSoup
+import pandas as pd
 
 
 def get_sp500_companies():
+    sym = []
+    name = []
+    cik = []
     data = {}
     sp500_url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
     r = requests.get(sp500_url)
@@ -15,12 +19,14 @@ def get_sp500_companies():
     for row in rows:
         cells = row.findAll('td')
         if len(cells) >= 8:
-            co_sym = cells[0].text.strip()
-            co_cik = cells[7].text.strip()
-            data[co_sym] = co_cik
-    return data
+            sym.append(cells[0].text.strip())
+            name.append(cells[1].text.strip())
+            cik.append(cells[7].text.strip())
+
+    return pd.DataFrame({"Name": name,
+                         "Symbol": sym,
+                         "CIK": cik})
 
 
 if __name__ == '__main__':
-    for sym, cik in itertools.islice(get_sp500_companies().items(), 5):
-        print(sym, cik)
+    get_sp500_companies().to_csv(r"./Data/sp500.csv", index=False)

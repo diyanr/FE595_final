@@ -35,10 +35,11 @@ def get_companies_by_cik(cik):
     return dict([(name, cik)])
 
 
-def get_documents(name, cik, type='10-k', num=1):
+def get_10K_documents(name, cik, num=1):
     company = Company(name, cik)
-    tree = company.get_all_filings(filing_type=type)
-    docs = Company.get_documents(tree, no_of_documents=num)
+    # tree = company.get_all_filings(filing_type="10-K")
+    # docs = Company.get_documents(tree, no_of_documents=num)
+    docs = company.get_10Ks(no_of_documents=num)
     return docs
 
 
@@ -47,25 +48,38 @@ def parse_10K_document(doc):
 
 
 def pull_risk_section(text):
+    result = " "
     matches = list(re.finditer(re.compile('Item [0-9][A-Z]*\.', re.IGNORECASE), text))
-    start = max([i for i in range(len(matches)) if matches[i][0].lower() == 'Item 1A.'.lower()])
-    # end = start + 1
-    end = max([i for i in range(len(matches)) if matches[i][0].lower() == 'Item 2.'.lower()])
+
+    end_idx = [i for i in range(len(matches)) if matches[i][0].lower() == 'Item 2.'.lower()]
+    if len(end_idx) == 0:
+        return result
+    else:
+        end = max(end_idx)
+
+    start_idx = [i for i in range(len(matches)) if matches[i][0].lower() == 'Item 1A.'.lower() and i < end]
+    if len(start_idx) == 0:
+        return result
+    else:
+        start = max(start_idx)
+
     start = matches[start].span()[1]
     end = matches[end].span()[0]
     return text[start:end]
 
 
 if __name__ == '__main__':
-    sym = 'ABMD'
-    cik = '0000815094'
-    raw_docs = get_documents(sym, cik, type='10-k', num=5)
+    sym = 'MRK'
+    name = 'Merck & Co.'
+    cik = '0000310158'
+    raw_docs = get_10K_documents(name, cik, num=1)
     print(len(raw_docs))
     i = 1
     for doc in raw_docs:
-        # f = open("10_K.txt", "w")
-        # f.write(re.sub(r'[^\x00-\x7F]+', ' ', TXTML.parse_full_10K(doc)))
-        # f.close()
-        risk = pull_risk_section(parse_10K_document(doc))
+        txt_doc = parse_10K_document(doc)
+        f = open("10_K.txt", "w")
+        f.write(txt_doc)
+        f.close()
+        risk = pull_risk_section(txt_doc)
         print(risk)
-        print(TextBlob(risk).sentiment.polarity)
+        # print(TextBlob(risk).sentiment.polarity)

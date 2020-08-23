@@ -9,7 +9,7 @@ def get_returns(sym, year):
     q2_date = dt.datetime(year, 6, 30)
     q3_date = dt.datetime(year, 9, 30)
     q4_date = dt.datetime(year, 12, 31)
-    print(f"Downloading data for {sym} in year {year}")
+    # print(f"Downloading data for {sym} in year {year}")
     data = yf.download(sym, start=start_date, end=end_date, interval="1d")
     if len(data) == 0:
         return [0.0, 0.0, 0.0, 0.0]

@@ -1,4 +1,3 @@
-import secfiles as sf
 import random as rnd
 import wiki as w
 import sec as s
@@ -8,26 +7,28 @@ import yahoofin as y
 
 
 def get_10K_txt_file(co_cik, year):
-    txt_doc = sf.get_10K_files(co_cik, year)
-    rsk_doc = s.pull_risk_section(sf.parse_10K_document(txt_doc))
+    """
+    Get the sentiment of the Risk Section (Item 1A.) from text 10-K filings
+    from previously downloaded filings for a given company CIK and year
+    """
+    txt_doc = s.get_10K_doc_txt(co_cik, year)
+    rsk_doc = s.pull_risk_section(s.parse_10K_doc_txt(txt_doc))
     rsk_sentiment = TextBlob(rsk_doc).sentiment.polarity
     return rsk_sentiment
 
 
-# def get_10K_risk_sentiments(co_name, co_cik, no_of_docs=5):
-#     raw_docs = s.get_10K_documents(co_name, co_cik, num=no_of_docs)
-#     rsk_docs = [s.pull_risk_section(s.parse_10K_document(doc)) for doc in raw_docs]
-#     rsk_sentiment = [TextBlob(rsk).sentiment.polarity for rsk in rsk_docs]
-#     return rsk_sentiment
-
 def get_10K_risk_sentiments(companies, years, no_of_companies=5, shuffle=True):
+    """
+    Return a pandas dataframe containing the risk sentiments
+    for a number of companies from a given list of companies (randomly shuffled)
+    for a given list of years
+    """
     year_lst = []
     name_lst = []
     sym_lst = []
     cik_lst = []
     sentiment_lst = []
 
-    # co_list = pd.read_csv(r".\Data\sp500.csv")
     co_index = [*range(len(companies))]
 
     if shuffle:
@@ -49,7 +50,12 @@ def get_10K_risk_sentiments(companies, years, no_of_companies=5, shuffle=True):
                          "Sentiment": sentiment_lst})
 
 
-def get_quarterly_returns(year, comapnies=5, shuffle=True):
+def get_quarterly_returns(years, companies=5, shuffle=True):
+    """
+    Returns a pandas dataframe containing the quarterly returns
+    for a number of companies in the S&P 500 index (randomly shuffled)
+    for a given list of years
+    """
     year_lst = []
     name_lst = []
     sym_lst = []
@@ -85,6 +91,11 @@ def get_quarterly_returns(year, comapnies=5, shuffle=True):
 
 
 def get_returns_for_sentiment(sentiments):
+    """
+    Returns a pandas dataframe containing the quarterly returns
+    of list of companies provided in the list of sentiments provided.
+    This list of sentiments will be for a number of companies for a number of years.
+    """
     year_lst = []
     name_lst = []
     sym_lst = []
@@ -116,6 +127,39 @@ def get_returns_for_sentiment(sentiments):
                          "Q1": q1_lst, "Q2": q2_lst, "Q3": q3_lst, "Q4": q4_lst})
 
 
+def get_returns_for_spy(years):
+    """
+    Returns the quarterly returns for the SPY ETF
+    which will be used as the benchmark for the S&P 500 Index
+    """
+    sym = 'SPY'
+    name = 'SPDR S&P 500 ETF Trust'
+
+    year_lst = []
+    name_lst = []
+    sym_lst = []
+    cik_lst = []
+    q1_lst = []
+    q2_lst = []
+    q3_lst = []
+    q4_lst = []
+
+    for year in years:
+        q1, q2, q3, q4 = y.get_returns(sym, year)
+        q1_lst.append(q1)
+        q2_lst.append(q2)
+        q3_lst.append(q3)
+        q4_lst.append(q4)
+        year_lst.append(year)
+        name_lst.append(name)
+        sym_lst.append(sym)
+
+    return pd.DataFrame({"Name": name_lst,
+                         "Symbol": sym_lst,
+                         "Year": year_lst,
+                         "Q1": q1_lst, "Q2": q2_lst, "Q3": q3_lst, "Q4": q4_lst})
+
+
 if __name__ == '__main__':
     years = [*range(2018, 2008, -1)]
     companies = 500
@@ -124,26 +168,7 @@ if __name__ == '__main__':
 
     # get_quarterly_returns(years, companies).to_csv(r"./Data/returns.csv", index=False)
 
-    sentiments = pd.read_csv(r".\Data\sentiments.csv")
-    get_returns_for_sentiment(sentiments).to_csv(r".\Data\results.csv")
+    # sentiments = pd.read_csv(r".\Data\sentiments.csv")
+    # get_returns_for_sentiment(sentiments).to_csv(r".\Data\results.csv", index=False)
 
-    # docs = len(years)
-    #
-    # co_list = list(w.get_sp500_companies().items())
-    # co_list = pd.read_csv(r".\Data\sp500.csv")
-    # co_index = [*range(len(co_list))]
-    #
-    # rnd.shuffle(co_index)
-    # # for idx in co_index[:companies]:
-    # #     name, sym, cik = co_list.loc[idx,:]
-    # #     print(name, sym, cik)
-    #
-    # with open("./Data/sent.txt", "w+") as file:
-    #     for idx in co_index[:companies]:
-    #         name, sym, cik = co_list.loc[idx, :]
-    #         for year in years:
-    #             sentiment = get_10K_txt_file(cik, year)
-    #             file.write(f'"{sym}" , "{name}", "{cik}", {year}, {sentiment}\n')
-    # sentiment = get_10K_risk_sentiments(name, cik, no_of_docs=docs)
-    # for i in range(len(sentiment)):
-    #     file.write(f'"{sym}" , "{name}", "{cik}", {years[i]}, "{sentiment[i]}"\n')
+    get_returns_for_spy(years).to_csv(r".\Data\spy.csv", index=False)

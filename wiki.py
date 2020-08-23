@@ -1,4 +1,3 @@
-import itertools
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -29,4 +28,5 @@ def get_sp500_companies():
 
 
 if __name__ == '__main__':
+    # Get list of companies that are components of the S&P 500 Index
     get_sp500_companies().to_csv(r"./Data/sp500.csv", index=False)

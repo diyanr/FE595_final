@@ -1,0 +1,6 @@
+requests
+edgar
+pandas
+textblob
+beautifulsoup4
+yfinance

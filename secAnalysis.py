@@ -37,4 +37,32 @@ def averageSentimentvsReturns():
 	ax.set_ylabel("Average Sentiment")
 	plt.show()
 
+def averageChangevsSentiment():
+	data = getData()
+	avgChange = []
+	avgSent = []
+	sentiSum = 0
+	changeSum = 0
+	setInd = 0
+	for index, row in data.iterrows():
+		sentiSum += data["Sentiment"][index]
+		changeSum += ((data["Q4"][index] - data["Q1"][index]) / 3)
+		if (setInd == 10):
+			setInd = 0
+			avgSent.append(sentiSum/10)
+			avgChange.append(changeSum/10)
+			sentiSum = 0
+			changeSum = 0
+		else:
+			setInd += 1
+	fig, ax = plt.subplots()
+	ax.scatter(avgChange, avgSent)
+	ax.set_title("Average Sentiment vs Average Change per Quarter")
+	ax.set_xlabel("Average Change per Quarter")
+	ax.set_ylabel("Average Sentiment")
+	plt.show()
+
+
+
 averageSentimentvsReturns() 
+averageChangevsSentiment()
